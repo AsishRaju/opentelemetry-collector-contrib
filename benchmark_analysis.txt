@@ -1,0 +1,101 @@
+BENCHMARK RESULTS ANALYSIS
+==========================================================================================
+Old implementation: benchmark_old_no_utf8.txt
+New implementation: benchmark_new_utf8.txt
+
+COLUMN DEFINITIONS:
+------------------------------------------------------------------------------------------
+ns/op       Nanoseconds per operation - how long each function call takes.
+            Lower is better. 1000 ns = 1 microsecond, 1,000,000 ns = 1 millisecond.
+
+B/op        Bytes allocated per operation - total heap memory allocated per function call.
+            Lower is better. Indicates memory efficiency.
+
+allocs/op   Number of heap allocations per operation - how many times memory was allocated.
+            Lower is better. Each allocation has overhead and creates work for the GC.
+
+min-ns/op   Fastest (minimum) time recorded across 10 benchmark runs.
+max-ns/op   Slowest (maximum) time recorded across 10 benchmark runs.
+avg-ns/op   Average time across all 10 benchmark runs.
+
+Diff        Absolute difference in nanoseconds between old and new implementation.
+Diff %      Percentage change from old to new implementation.
+------------------------------------------------------------------------------------------
+
+==========================================================================================
+OLD IMPLEMENTATION (no UTF-8 handling)
+==========================================================================================
+Test Name                         min-ns/op    max-ns/op    avg-ns/op     B/op  allocs/op
+------------------------------------------------------------------------------------------
+ASCII_long_1KB                        45.42        46.13        45.75       48          3
+ASCII_medium_100B                     45.12        45.90        45.57       48          3
+ASCII_no_truncation                   33.96        35.31        34.42       32          2
+ASCII_short_10B                       44.60        49.47        45.53       48          3
+UTF8_2byte_medium                     45.78        46.70        46.24       48          3
+UTF8_2byte_short                      45.86        47.43        46.54       48          3
+UTF8_3byte_long_900B                  45.78        46.60        46.16       48          3
+UTF8_3byte_medium_90B                 46.02        48.82        46.87       48          3
+UTF8_3byte_short_9B                   45.87        46.90        46.23       48          3
+UTF8_4byte_long_1KB                   45.84        46.87        46.37       48          3
+UTF8_4byte_medium_100B                45.57        46.67        46.18       48          3
+UTF8_4byte_short_20B                  45.61        46.78        46.23       48          3
+UTF8_grapheme_long_450B               45.84        46.71        46.27       48          3
+UTF8_grapheme_short                   45.74        47.15        46.29       48          3
+UTF8_mixed_long_700B                  45.97        47.01        46.23       48          3
+UTF8_mixed_short                      45.62        46.57        46.11       48          3
+invalid_UTF8_long                     46.15        47.23        46.64       48          3
+invalid_UTF8_short                    46.04        47.67        46.55       48          3
+limit_one                             46.09        46.81        46.37       48          3
+limit_zero                            45.86        47.20        46.36       48          3
+
+==========================================================================================
+NEW IMPLEMENTATION (with UTF-8 handling)
+==========================================================================================
+Test Name                         min-ns/op    max-ns/op    avg-ns/op     B/op  allocs/op
+------------------------------------------------------------------------------------------
+ASCII_long_1KB                       108.70       112.10       110.35       48          3
+ASCII_medium_100B                     52.04        53.81        52.62       48          3
+ASCII_no_truncation                   34.66        35.87        35.38       32          2
+ASCII_short_10B                       49.26        50.85        49.87       48          3
+UTF8_2byte_medium                    140.10       144.30       141.76       48          3
+UTF8_2byte_short                      56.76        59.06        57.44       48          3
+UTF8_3byte_long_900B                 436.30       448.20       442.20       48          3
+UTF8_3byte_medium_90B                 82.05        83.50        82.69       48          3
+UTF8_3byte_short_9B                   53.04        54.77        53.92       48          3
+UTF8_4byte_long_1KB                  370.70       376.20       373.96       48          3
+UTF8_4byte_medium_100B                81.60        82.94        82.24       48          3
+UTF8_4byte_short_20B                  54.65        55.93        55.35       48          3
+UTF8_grapheme_long_450B              344.90       353.60       347.67       48          3
+UTF8_grapheme_short                   56.65        58.34        57.27       48          3
+UTF8_mixed_long_700B                 489.00       506.10       496.13       48          3
+UTF8_mixed_short                      58.35        60.57        59.23       48          3
+invalid_UTF8_long                     50.06        51.11        50.62       48          3
+invalid_UTF8_short                    50.23        51.29        50.56       48          3
+limit_one                             56.62        58.02        57.33       48          3
+limit_zero                            56.36        57.82        57.14       48          3
+
+==============================================================================================================
+COMPARISON: OLD (no UTF-8) vs NEW (with UTF-8)
+==============================================================================================================
+Test Name                         Old avg    New avg       Diff     Diff %     B/op  allocs/op
+--------------------------------------------------------------------------------------------------------------
+ASCII_long_1KB                      45.75     110.35     +64.60    +141.2%       48          3
+ASCII_medium_100B                   45.57      52.62      +7.05     +15.5%       48          3
+ASCII_no_truncation                 34.42      35.38      +0.96      +2.8%       32          2
+ASCII_short_10B                     45.53      49.87      +4.33      +9.5%       48          3
+UTF8_2byte_medium                   46.24     141.76     +95.52    +206.6%       48          3
+UTF8_2byte_short                    46.54      57.44     +10.90     +23.4%       48          3
+UTF8_3byte_long_900B                46.16     442.20    +396.04    +858.1%       48          3
+UTF8_3byte_medium_90B               46.87      82.69     +35.81     +76.4%       48          3
+UTF8_3byte_short_9B                 46.23      53.92      +7.68     +16.6%       48          3
+UTF8_4byte_long_1KB                 46.37     373.96    +327.59    +706.5%       48          3
+UTF8_4byte_medium_100B              46.18      82.24     +36.06     +78.1%       48          3
+UTF8_4byte_short_20B                46.23      55.35      +9.12     +19.7%       48          3
+UTF8_grapheme_long_450B             46.27     347.67    +301.40    +651.5%       48          3
+UTF8_grapheme_short                 46.29      57.27     +10.98     +23.7%       48          3
+UTF8_mixed_long_700B                46.23     496.13    +449.90    +973.2%       48          3
+UTF8_mixed_short                    46.11      59.23     +13.11     +28.4%       48          3
+invalid_UTF8_long                   46.64      50.62      +3.98      +8.5%       48          3
+invalid_UTF8_short                  46.55      50.56      +4.01      +8.6%       48          3
+limit_one                           46.37      57.33     +10.96     +23.6%       48          3
+limit_zero                          46.36      57.14     +10.78     +23.3%       48          3

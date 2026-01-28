@@ -1,0 +1,63 @@
+===========================================
+BENCHMARK COMPARISON: truncate_all UTF-8 Fix
+===========================================
+
+OLD Implementation: Simple byte-level truncation (no UTF-8 handling)
+NEW Implementation: UTF-8 safe truncation with utf8.ValidString() + utf8.RuneStart()
+
+Platform: darwin arm64 (Apple M4 Pro)
+Runs: 10 per test case
+
+SUMMARY (average ns/op):
+-------------------------------------------
+Test Case                    | Old    | New    | Overhead
+-----------------------------|--------|--------|----------
+ASCII_short_10B              | ~45 ns | ~50 ns | +5 ns (~11%)
+ASCII_medium_100B            | ~45 ns | ~52 ns | +7 ns (~16%)
+ASCII_long_1KB               | ~46 ns | ~110 ns| +64 ns (utf8.ValidString)
+ASCII_no_truncation          | ~34 ns | ~35 ns | +1 ns (~3%)
+UTF8_2byte_short             | ~46 ns | ~57 ns | +11 ns (~24%)
+UTF8_2byte_medium            | ~46 ns | ~141 ns| +95 ns (utf8.ValidString)
+UTF8_3byte_short_9B          | ~46 ns | ~54 ns | +8 ns (~17%)
+UTF8_3byte_medium_90B        | ~47 ns | ~83 ns | +36 ns (utf8.ValidString)
+UTF8_3byte_long_900B         | ~46 ns | ~442 ns| +396 ns (utf8.ValidString)
+UTF8_4byte_short_20B         | ~46 ns | ~55 ns | +9 ns (~20%)
+UTF8_4byte_medium_100B       | ~46 ns | ~82 ns | +36 ns (utf8.ValidString)
+UTF8_4byte_long_1KB          | ~46 ns | ~374 ns| +328 ns (utf8.ValidString)
+UTF8_mixed_short             | ~46 ns | ~59 ns | +13 ns (~28%)
+UTF8_mixed_long_700B         | ~46 ns | ~496 ns| +450 ns (utf8.ValidString)
+UTF8_grapheme_short          | ~46 ns | ~57 ns | +11 ns (~24%)
+UTF8_grapheme_long_450B      | ~46 ns | ~348 ns| +302 ns (utf8.ValidString)
+limit_zero                   | ~46 ns | ~57 ns | +11 ns (~24%)
+limit_one                    | ~46 ns | ~57 ns | +11 ns (~24%)
+invalid_UTF8_short           | ~46 ns | ~50 ns | +4 ns (~9%)
+invalid_UTF8_long            | ~46 ns | ~51 ns | +5 ns (~11%)
+
+KEY OBSERVATIONS:
+-------------------------------------------
+1. Short strings (<100 bytes): Minimal overhead (5-13 ns, ~11-28%)
+   - The utf8.ValidString() call is fast for short strings
+   - The backup loop rarely executes (0-3 iterations max)
+
+2. Long strings (>100 bytes): Notable overhead from utf8.ValidString()
+   - utf8.ValidString() scans the entire string to validate
+   - This is the dominant cost for longer strings
+   - 900B CJK text: +396 ns, 1KB emoji: +328 ns
+
+3. Invalid UTF-8: Fast path - skips boundary adjustment
+   - Only ~4-5 ns overhead (just the ValidString check)
+
+4. No truncation needed: Negligible overhead (~1 ns)
+   - The check `len(stringVal) > limit` short-circuits
+
+5. Memory: No additional allocations (same 48 B/op, 3 allocs/op)
+
+CONCLUSION:
+-------------------------------------------
+The overhead is acceptable for correctness:
+- Short strings (common case): <15 ns overhead
+- Long strings: 300-500 ns overhead, still <1 microsecond
+- Zero additional memory allocations
+
+The fix ensures valid UTF-8 output, preventing downstream issues
+with systems that expect valid UTF-8 strings.
